@@ -1,7 +1,7 @@
 $asqwatches (sas-kwatch) are real and they're hiding in your angular apps. To understand why, we have to step back and remember how we used to, in some cases still do, build our angular apps. Like all of you, when I first learned about angular and got my hands on it, I was in love. The ability to create your own HTML elements, not having to use jQuery, and two-way data binding changed the game.
 
 ## Your first angular app
-Building are first apps with angular felt like we were using magic with all those baked in directives and DI. Before patterns and best practices evolved we just did what felt write. We wrote code like this:
+Building our first apps with angular felt like we were using magic with all those baked in directives and DI. Before patterns and best practices evolved we just did what felt right. We wrote code like this:
 
 ```markup
 <div class="card" ng-repeat="item in items | orderBy:'createdAt' | filter:filter">
@@ -17,7 +17,7 @@ Building are first apps with angular felt like we were using magic with all thos
 This code looks fine and in most cases it is. We're smarter and more experienced now so we're building bigger apps, but there's one problem. Our apps are slow, crawling really. Our users are suffering because we ngOverDidIt. Sure its fun to just jump in and ngAllTheThings, but you will soon pay for it with performance issues and its all our your fault. We're going to learn how to speed up our janky UI's and stull have fun doing it, but first we'll go over why writing code like this is killing performance.
 
 ## The $digest cycle is your worst friend
-I say worst friend because it is our friend. The same friend you trust all your secrets with then goes behind your back and tells everyone about them. The $digest cycle is the engine behind angular's magic. It starts at the current scope down to all the child scopes and evaluates watch expressions. When these expressions return different values than previous $digest, listener functions will be called. This entire process can take forever. The more wathcers you have the longer the digest will run. There are other performance bottlenecks in angular, but most of the time it is the $digest that slows things down. Here are the common ways in which most are triggering a $digest.
+I say worst friend because it is our friend. The same friend you trust all your secrets with then goes behind your back and tells everyone about them. The $digest cycle is the engine behind angular's magic. It starts at the current scope down to all the child scopes and evaluates watch expressions. When these expressions return different values than previous $digest, listener functions will be called. This entire process can take forever. The more watchers you have the longer the digest will run. There are other performance bottlenecks in angular, but most of the time it is the $digest that slows things down. Here are the common ways in which most are triggering a $digest.
 ```javascript
 /* 1 */
 $scope.$apply() // will call a $digest at the $rootScope
@@ -29,10 +29,10 @@ $scope.$digest() // will call a $digest at the current scope
 ```
 
 ## $asqwatches
-We now know that the more wathchers we have the slower the $digest will be and that this can cause janky performance. Have you ever thought about where those watchers are coming from? Using a tool like [ng-stats](http://github.com) in development, you can now see how many watchers are active in your app. So what exactly is a $asqwatch?
-* The watchers you did not know your were making or didn't care to optimize
+We now know that the more watchers we have the slower the $digest will be and that this can cause janky performance. Have you ever thought about where those watchers are coming from? Using a tool like [ng-stats](http://github.com) in development, you can now see how many watchers are active in your app. So what exactly is a $asqwatch?
+* The watchers you did not know you were making or didn't care to optimize
 * The watchers that came from 3rd party modules that you installed
-* The watchers that manifested from nowhere
+* The watchers that manifested from nowhere.
 This proves that you're at fault for having such slow angular apps because we put those $asqwatches there.
 
 ## Speed things up
@@ -192,7 +192,7 @@ on-mouse-enter="onMouseEnter($event, $even)">
 ```
 Now we are in control of when a `$digest` will be called by using `jqLite`. Using `$eval`, angular will evaluate the expression attached to the the `onMouseEnter` attribute, our function. This approach will not trigger a single call to `$digest` and still show our toasts on `$even` elements. If we did want to change a model in our `onMouseEnter` function, then we could just call `$apply` ourselves in our directive which would only trigger a `$digest` on `$even` even elements.
 ### unwatching
-We maually register watchers using `$socpe.$watch|$watchGroup|$watchCollection` . These very common and very powerfull. Sometimes however, we just want to do something once when our expression changes and nothing more.
+We maually register watchers using `$socpe.$watch|$watchGroup|$watchCollection` . These are very common and very powerful. Sometimes however, we just want to do something once when our expression changes and nothing more.
 ```javascript
 $scope.number = 0;
   
