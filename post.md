@@ -240,11 +240,11 @@ var cancel = $scope.$watch('number', function(fresh, stale){
 The `$watch` methods on the scope all return a function that when called will cancel it so the `$digest` won't process it anymore. Pretty easy and awesome to use right now.
 
 ### filters
-I don't have a code sample here for filters because you just need to see it. Head over to the [ng-stats Demo](http://kent.doddsfamily.us/ng-stats/) and play with the filters for a minute. Start with no delay on the filter, then increase it to just 1ms and start hovering over the list items. Notice the jank! Angular now use stateless filters for better performance (previously, these were a major source of slowness).
+I don't have a code sample here for filters because you just need to see it. Head over to the [ng-stats Demo](http://kent.doddsfamily.us/ng-stats/) and play with the filters for a minute. Start with no delay on the filter, then increase it to just 1ms and start hovering over the list items. Notice the jank! Angular now uses stateless filters for better performance (previously, these were a major source of slowness).
 
 ## Conclusion
 
-Performance is hard, very hard, but if you commit to some of these techniques you can avoid huge bottlenecks in angular. So here are some other tips
+Performance is hard, very hard, but if you commit to ssome of these techniques you can avoid huge bottlenecks in angular. So here are some other tips
 
 * Don't use any `ng-[DOM EVENT]` directives like `ng-mousemove` and `ng-keydown` They're gone on Angular 2 anyway.
 * Use `ng-repeat` responsibly.
