@@ -17,7 +17,7 @@ Building are first apps with angular felt like we were using magic with all thos
 This code looks fine and in most cases it is. We're smarter and more experienced now so we're building bigger apps, but there's one problem. Our apps are slow, crawling really. Our users are suffering because we ngOverDidIt. Sure its fun to just jump in and ngAllTheThings, but you will soon pay for it with performance issues and its all our your fault. We're going to learn how to speed up our janky UI's and stull have fun doing it, but first we'll go over why writing code like this is killing performance.
 
 ## The $digest cycle is your worst friend
-I say worst friend because it is our friend. The same friend you trust all your secrets with then goes behind your back and tells everyone about them. The $digest cycle is the engine behind angular's magic. It starts at the current scope down to all the child scopes and evaluates watch expressions. When these expressions return different values than previous $digest, listener functions will be called. This entire process can take forever. The more wathcers you have the longer the digest will run. There are other performance bottlenecks in angular, but most of the time it is the $digest that slows things down. Here are the common ways in which most are triggering a $digest.
+I say worst friend because it is our friend. The same friend you trust all your secrets with then goes behind your back and tells everyone about them. The $digest cycle is the engine behind angular's magic. It starts at the current scope down to all the child scopes and evaluates watch expressions. When these expressions return different values than previous `$digest`, listener functions will be called. This entire process can take forever. The more watchers you have the longer the digest will run. There are other performance bottlenecks in angular, but most of the time it is the `$digest` that slows things down. Here are the common ways in which most are triggering a $digest.
 ```javascript
 /* 1 */
 $scope.$apply() // will call a $digest at the $rootScope
@@ -29,10 +29,11 @@ $scope.$digest() // will call a $digest at the current scope
 ```
 
 ## $asqwatches
-We now know that the more wathchers we have the slower the $digest will be and that this can cause janky performance. Have you ever thought about where those watchers are coming from? Using a tool like [ng-stats](http://github.com) in development, you can now see how many watchers are active in your app. So what exactly is a $asqwatch?
-* The watchers you did not know your were making or didn't care to optimize
-* The watchers that came from 3rd party modules that you installed
-* The watchers that manifested from nowhere
+We now know that the more watchers we have the slower the $digest will be and that this can cause janky performance. Have you ever thought about where those watchers are coming from? Using a tool like [ng-stats](http://github.com) in development, you can now see how many watchers are active in your app. So what exactly is a $asqwatch?
+* The watch(es) you did not know your were making or didn't care to optimize
+* The watch(es) that came from 3rd party modules that you installed
+* The watch(es) that manifested from nowhere
+
 This proves that you're at fault for having such slow angular apps because we put those $asqwatches there.
 
 ## Speed things up
@@ -72,9 +73,12 @@ angular.module('app.intro', [])
   </div>
 </div>
 ```
-So how many did you count? The average person counted 20 watchers. There's an `ng-class` and a binding for each `num in nums` which is an array of 10. So that's 2 wathcers for each `num`. If you counted 20 , then your're as wrong as they are. There are actually 24 watchers here. The other 4 are $asqwatches, but where did they come from? `num in nums` creates a wathcer on `nums` to keep an eye on changes in that collection. The `ng-model="search"` creates a watchers on the `search` model. So that brings our count to 22. The remainding two are built into the core of angular. Angular watchers `$loaction` and `anchorScroll` right out the box.
+So how many did you count? The average person counted 20 watchers. There's an `ng-class` and a binding for each `num in nums` which is an array of 10. So that's 2 watches for each `num`. If you counted 20 , then your're as wrong as they are. There are actually 24 watchers here. The other 4 are $asqwatches, but where did they come from? `num in nums` creates a wathcer on `nums` to keep an eye on changes in that collection. The `ng-model="search"` creates a watchers on the `search` model. So that brings our count to 22. The remainding two are built into the core of angular. Angular watchers `$location` and `anchorScroll` right out the box.
+
 ### conditionals
+
 Here is an common use case in angular where you might want to show & hide some html based on some expression. Count the watchers.
+
 ```markup
 <div class="title col s6">
   <h3 ng-show="editMode">Edit mode</h3>
@@ -104,7 +108,8 @@ Here is an common use case in angular where you might want to show & hide some h
   </ul>
 </div>
 ```
-If you counted 10, then you're right. Plus the two that angular has brings us to 12. We can do better. `ng-show` & `ng-hide` use css to hide your elements, but they are stil on the DOM. This means that any watchers in those elements will be registered, even if hidden. Since we don't have any directives with DOM event listeners, we could safely use `ng-if` instead of show & hide. `ng-if` will completely remove the element from the DOM, making sure we won't have any $asqwatches lurking around. Note, using `ng-if` may cause other performance issues associated with adding and removing heavy elements from the DOM, especially on mobile. Here is our refactor using `ng-if` which brings down our watcher count.
+If you counted 10, then you're right. Plus the two that angular has brings us to 12. We can do better. `ng-show` & `ng-hide` use css to hide your elements, but they are still in the DOM. This means that any watchers in those elements will be registered, even if hidden. Since we don't have any directives with DOM event listeners, we could safely use `ng-if` instead of show & hide. `ng-if` will completely remove the element from the DOM, making sure we won't have any $asqwatches lurking around. Note, using `ng-if` may cause other performance issues associated with adding and removing heavy elements from the DOM, especially on mobile. Here is our refactor using `ng-if` which brings down our watcher count.
+
 ```markup
 <div class="row" ng-if="editMode">
   <div class="title col s6">
@@ -140,9 +145,12 @@ If you counted 10, then you're right. Plus the two that angular has brings us to
   </div>
 </div> 
 ```
-Now when `editMode` is true, we register only 3 watchers. When `editMode` is false, we register 7 watchers. Sure we had to write a tad bit ore HTML, but its worth it. These small bite sized optimizations add up.
+Now when `editMode` is true, we register only 3 watchers. When `editMode` is false, we register 7 watchers. Sure we had to write a tad bit more HTML, but its worth it. These small bite sized optimizations add up.
+
 ### less ng
+
 Sure, all those awesome direcitves we get with angular are fun and easy to use, but they are killing your app's performance. Take a look at the example below that runs a function on `ng-mouseenter`. That function sits in a controller and shows a toast if the current element in the `ng-repeat` is `$even`. It does nothing if it is not even.
+
 ```javascript
 .controller('MainController', function($scope, Toast, Cards) {
   // cards === [{ tile: 'some title' }] X 9
@@ -167,6 +175,7 @@ ng-mouseenter="onMouseEnter($event, $even)">
 ```
 
 This may seem fine, but what about when the element is not `$even`? Because we are using `ng-mouseenter`, a `$digest` will be called. Angular wraps our expression, `onMousenEnter($event, $even)`, inside a `$scope.$apply()` which calls a `$digest`. A `$digest` is pointless in our case for a few reasons. We're not changing any models in our `onMouseEnter()` function, and we for sure don't want a call to `$digest` if the element is not `$even`. What if you already had a few thousand watchers, calling a digest everytime we mouseenter will kill your app's performace. Lets speed this up by making our own directive and using DOM events.
+
 ```javascript
 .directive('onMouseEnter', function(){
   return function(scope, ele, attr) {
@@ -190,9 +199,13 @@ on-mouse-enter="onMouseEnter($event, $even)">
   </div>
 </div>
 ```
+
 Now we are in control of when a `$digest` will be called by using `jqLite`. Using `$eval`, angular will evaluate the expression attached to the the `onMouseEnter` attribute, our function. This approach will not trigger a single call to `$digest` and still show our toasts on `$even` elements. If we did want to change a model in our `onMouseEnter` function, then we could just call `$apply` ourselves in our directive which would only trigger a `$digest` on `$even` even elements.
+
 ### unwatching
-We maually register watchers using `$socpe.$watch|$watchGroup|$watchCollection` . These very common and very powerfull. Sometimes however, we just want to do something once when our expression changes and nothing more.
+
+We manually register watchers using `$socpe.$watch|$watchGroup|$watchCollection` . These very common and very powerfull. Sometimes however, we just want to do something once when our expression changes and nothing more.
+
 ```javascript
 $scope.number = 0;
   
@@ -215,7 +228,7 @@ $scope.number = 0;
   <h3>{{ number }}</h3>
 </div>
 ```
-Whenever `$scope.number` is higher than 10, we show a toast notification. We only want to do this once though. However, the toast will continue to show everytime `$socpe.number` goes over 10 by clicking the button that assigns a random number. We should be responsible and clean up after ourselves and unwatch our watchers when we don't need them anymore, especially if our listener functions are taking forever to process, clogging up the `$digest`. Angular provides a simple way to cancel our watchers.
+Whenever `$scope.number` is higher than 10, we show a toast notification. We only want to do this once though. However, the toast will continue to show everytime `$scope.number` goes over 10 by clicking the button that assigns a random number. We should be responsible and clean up after ourselves and unwatch our watchers when we don't need them anymore, especially if our listener functions are taking forever to process, clogging up the `$digest`. Angular provides a simple way to cancel our watchers.
 ```javascript
 var cancel = $scope.$watch('number', function(fresh, stale){
     if (fresh !== stale && fresh > 10) {
@@ -227,10 +240,12 @@ var cancel = $scope.$watch('number', function(fresh, stale){
 The `$watch` methods on the scope all return a function that when called will cancel it so the `$digest` won't process it anymore. Pretty easy and awesome to use right now.
 
 ### filters
-I don't have a code sample here for filters because you just need to see it. Head over to the [ng-stats Demo](http://kent.doddsfamily.us/ng-stats/) and play with the filters for a minute. Start with no delay on the filter, then increase it to just 1ms and start hovering over the list items. Notice the jank! Angular now use statless filters for better performace too.
+I don't have a code sample here for filters because you just need to see it. Head over to the [ng-stats Demo](http://kent.doddsfamily.us/ng-stats/) and play with the filters for a minute. Start with no delay on the filter, then increase it to just 1ms and start hovering over the list items. Notice the jank! Angular now use stateless filters for better performance (previously, these were a major source of slowness).
 
 ## Conclusion
+
 Performance is hard, very hard, but if you commit to some of these techniques you can avoid huge bottlenecks in angular. So here are some other tips
+
 * Don't use any `ng-[DOM EVENT]` directives like `ng-mousemove` and `ng-keydown` They're gone on Angular 2 anyway.
 * Use `ng-repeat` responsibly.
 * Keep your filters stateless unless you absolutely cannot.
